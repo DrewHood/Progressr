@@ -10,6 +10,23 @@ router.get("/") {
     next()
 }
 
+router.get("/pe/retrieve") {
+    request, response, next in
+    try! PilotEdgeRetriever.sharedRetriever.retrieveOnce()
+    
+    let pid = request.parameters["id"] ?? "4039"
+    
+    if pid != nil {
+        try! PilotEdgeInterface.sharedStatus.status(Int(pid)!)
+    }
+    
+    response.send("Done")
+    next()
+}
+
+// Set up retriever
+try! PilotEdgeRetriever.sharedRetriever.start()
+
 // Add an HTTP server and connect it to the router
 Kitura.addHTTPServer(onPort: 8090, with: router)
 
