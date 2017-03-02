@@ -43,6 +43,15 @@ class PilotEdgeInterface {
                                                         groundspeed: Float(positionXml.attribute(by: "groundSpeed")!.text)!,
                                                         altitude: Float(positionXml.attribute(by: "alt")!.text)!)
                 
+//                let flightPlan = FlightPlan(origin: <#T##String#>,
+//                                            originCoord: <#T##Coordinate2D#>,
+//                                            destination: <#T##String#>,
+//                                            destinationCoord: <#T##Coordinate2D#>,
+//                                            altitude: <#T##Int#>,
+//                                            trueAirspeed: <#T##Int#>,
+//                                            type: <#T##FlightPlanType#>,
+//                                            route: <#T##String#>)
+                
                 debugPrint(pilotInfo)
                 debugPrint(aircraftPosition)
                 

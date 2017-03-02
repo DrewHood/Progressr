@@ -24,8 +24,23 @@ router.get("/pe/retrieve") {
     next()
 }
 
+router.get("airport/:code") {
+    request, response, next in
+    
+    // Get code without K
+    if let faaCode = request.parameters["code"]?.replacingOccurrences(of: "K", with: "") {
+        let airport = AirportDatabase.sharedDatabase[faaCode]
+        response.send(airport?.description ?? "Couldn't find airport")
+    }
+    
+    next()
+}
+
 // Set up retriever
 try! PilotEdgeRetriever.sharedRetriever.start()
+
+// Load airports
+try! AirportDatabase.sharedDatabase.loadAirports() // We want to crash if this fails!
 
 // Add an HTTP server and connect it to the router
 Kitura.addHTTPServer(onPort: 8090, with: router)
