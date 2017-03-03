@@ -27,7 +27,13 @@ class AirportDatabase {
     
     subscript(code: String) -> Airport? {
         get {
-            return self.airports[code]
+            // Make sure we don't have the first letter
+            var cleanCode = code
+            if cleanCode.characters.count > 3 {
+                _ = cleanCode.remove(at: cleanCode.startIndex)
+            }
+            
+            return self.airports[cleanCode]
         }
     }
     

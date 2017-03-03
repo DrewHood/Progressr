@@ -10,17 +10,16 @@ router.get("/") {
     next()
 }
 
-router.get("/pe/retrieve") {
+router.get("/pe/retrieve/:id") {
     request, response, next in
-    try! PilotEdgeRetriever.sharedRetriever.retrieveOnce()
+    let pid = request.parameters["id"] ?? "14369"
     
-    let pid = request.parameters["id"] ?? "4039"
-    
-    if pid != nil {
-        try! PilotEdgeInterface.sharedStatus.status(Int(pid)!)
+    if let status = try? PilotEdgeInterface.sharedStatus.status(Int(pid)!) {
+        response.send(status!.description)
+    } else {
+        response.send("Failed!")
     }
     
-    response.send("Done")
     next()
 }
 

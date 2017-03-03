@@ -4,7 +4,17 @@
 
 import SWXMLHash
 
-typealias PilotEdgeStatus = (position: AircraftPosition, flightPlan: FlightPlan, pilotInfo: PilotInfo)
+struct PilotEdgeStatus {
+    let position: AircraftPosition
+    let pilotInfo: PilotInfo
+    var flightPlan: FlightPlan?
+}
+
+extension PilotEdgeStatus: CustomStringConvertible {
+    var description: String {
+        return "Status... Position: \(self.position); Pilot: \(self.pilotInfo); Plan: \(self.flightPlan)"
+    }
+}
 
 enum PilotEdgeInterfaceError: Error {
  	case retrievalError
@@ -19,13 +29,13 @@ class PilotEdgeInterface {
 
 	// Internal Interface
 	func status(_ pilotId: Int) throws -> PilotEdgeStatus? {
+        // TODO: Error handling
+        
 		// Grab the latest data.
         if let peData = PilotEdgeRetriever.sharedRetriever.status {
             // Extract data for pilot.
             do {
                 let pilot = try peData["status"]["pilots"]["pilot"].withAttr("cid", "\(pilotId)")
-                
-                print("Ping!")
                 
                 // Serialize pilot info.
                 let pilotInfo = PilotInfo(pilotId: pilotId,
@@ -43,17 +53,39 @@ class PilotEdgeInterface {
                                                         groundspeed: Float(positionXml.attribute(by: "groundSpeed")!.text)!,
                                                         altitude: Float(positionXml.attribute(by: "alt")!.text)!)
                 
-//                let flightPlan = FlightPlan(origin: <#T##String#>,
-//                                            originCoord: <#T##Coordinate2D#>,
-//                                            destination: <#T##String#>,
-//                                            destinationCoord: <#T##Coordinate2D#>,
-//                                            altitude: <#T##Int#>,
-//                                            trueAirspeed: <#T##Int#>,
-//                                            type: <#T##FlightPlanType#>,
-//                                            route: <#T##String#>)
+                var peStatus = PilotEdgeStatus(position: aircraftPosition, pilotInfo: pilotInfo, flightPlan: nil)
                 
-                debugPrint(pilotInfo)
-                debugPrint(aircraftPosition)
+                // Parse the flight plan
+                if let flightPlanXml = pilot["flightplan"].element {
+                    let originAirportCode = flightPlanXml.attribute(by: "origin")?.text ?? "KLAX"
+                    let destinationAirportCode = flightPlanXml.attribute(by: "destination")?.text ?? "KPHX"
+                    let altitudeStr = flightPlanXml.attribute(by: "altitude")?.text ?? "9999"
+                    let altitude = Int(altitudeStr)
+                    let type: FlightPlanType = FlightPlanType(rawValue: flightPlanXml.attribute(by: "type")!.text) ?? .vfr
+                    
+                    // Get the coords
+                    let origin = AirportDatabase.sharedDatabase[originAirportCode] ?? AirportDatabase.sharedDatabase["LAX"]
+                    let destination = AirportDatabase.sharedDatabase[destinationAirportCode] ?? AirportDatabase.sharedDatabase["PHX"]
+                    
+                    // Get the route
+                    var route = pilot["flightplan"]["route"].element?.text ?? "Couldn't pull route"
+                    route = route.replacingOccurrences(of: "<![CDATA[ ", with: "")
+                    route = route.replacingOccurrences(of: " ]]>", with: "")
+                    
+                    
+                    // Construct the object
+                    let flightPlan = FlightPlan(origin: originAirportCode,
+                                                originCoord: origin!.position,
+                                                destination: destinationAirportCode,
+                                                destinationCoord: destination!.position,
+                                                altitude: altitude!,
+                                                type: type,
+                                                route: route)
+                    
+                    peStatus.flightPlan = flightPlan
+                }
+                
+                return peStatus
                 
             } catch let error as IndexingError {
                 print("Index error! \(error.description)")
