@@ -45,8 +45,7 @@ class PilotEdgeInterface {
                 var peStatus = PilotEdgeStatus(position: aircraftPosition, pilotInfo: pilotInfo, flightPlan: nil, progress: nil)
 
                 // Parse the flight plan
-                if let flightPlanXml = pilot["flightplan"].element {
-                    let originAirportCode = flightPlanXml.attribute(by: "origin")?.text ?? "KLAX"
+                if let flightPlanXml = pilot["flightplan"].element, let originAirportCode = flightPlanXml.attribute(by: "origin")?.text {
                     let destinationAirportCode = flightPlanXml.attribute(by: "destination")?.text ?? "KPHX"
                     let altitude = flightPlanXml.attribute(by: "altitude")?.text ?? "-1"
                     let type: FlightPlanType = FlightPlanType(rawValue: flightPlanXml.attribute(by: "type")!.text) ?? .vfr
