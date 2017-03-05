@@ -13,3 +13,9 @@ extension AircraftPosition: CustomStringConvertible {
         return "Aircraft position: \(self.position); GS: \(self.groundspeed); Alt: \(self.altitude)"
     }
 }
+
+extension AircraftPosition: JSONStringConvertible {
+    var jsonString: String {
+        return "{\"position\":\(self.position.jsonString),\"groundspeed\":\(self.groundspeed),\"altitude\":\(self.altitude)}"
+    }
+}

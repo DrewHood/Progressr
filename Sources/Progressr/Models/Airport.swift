@@ -18,3 +18,9 @@ extension Airport: CustomStringConvertible {
         return "Airport: \(self.code); Location: \(self.position)"
     }
 }
+
+extension Airport: JSONStringConvertible {
+    var jsonString: String {
+        return "{\"code\":\"\(self.code)\",\"position\":\(self.position.jsonString)}"
+    }
+}

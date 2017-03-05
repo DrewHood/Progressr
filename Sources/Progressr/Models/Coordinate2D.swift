@@ -12,3 +12,9 @@ extension Coordinate2D: CustomStringConvertible {
         return "(\(self.latitude), \(self.longitude))"
     }
 }
+
+extension Coordinate2D: JSONStringConvertible {
+    var jsonString: String {
+        return "{\"latitude\":\(self.latitude),\"longitude\":\(self.longitude)}"
+    }
+}

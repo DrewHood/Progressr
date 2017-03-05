@@ -14,3 +14,9 @@ extension PilotInfo: CustomStringConvertible {
         return "Pilot id: \(self.pilotId)\nName: \(self.name)\nCallsign: \(self.callsign)\nType: \(self.aircraftType)"
     }
 }
+
+extension PilotInfo: JSONStringConvertible {
+	  var jsonString: String {
+				return "{\"pilotId\":\(self.pilotId),\"name:\":\"\(self.name)\",\"callsign\":\"\(self.callsign)\",\"aircraftType\":\"\(self.aircraftType)\"}"
+		}
+}

@@ -1,4 +1,5 @@
 import Kitura
+import SwiftyJSON
 
 // Create a new router
 let router = Router()
@@ -13,25 +14,26 @@ router.get("/") {
 router.get("/pe/retrieve/:id") {
     request, response, next in
     let pid = request.parameters["id"] ?? "14369"
-    
+
     if let status = try? PilotEdgeInterface.sharedStatus.status(Int(pid)!) {
-        response.send(status!.description)
+        // Convert to JSON.
+        response.send(status!.jsonString)
     } else {
         response.send("Failed!")
     }
-    
+
     next()
 }
 
 router.get("airport/:code") {
     request, response, next in
-    
+
     // Get code without K
     if let faaCode = request.parameters["code"]?.replacingOccurrences(of: "K", with: "") {
         let airport = AirportDatabase.sharedDatabase[faaCode]
         response.send(airport?.description ?? "Couldn't find airport")
     }
-    
+
     next()
 }
 
