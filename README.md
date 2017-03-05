@@ -23,5 +23,5 @@ Requirements for running:
 * A copy of the FAA airport database ('NfdcFacilities'). [Download the Excel sheet from the FAA website](https://www.faa.gov/airports/airport_safety/airportdata_5010/), remove all columns except for ```LocationID```, ```ARPLatitude```, and ```ARPLongitude```, then save as a CSV. 
 
 After cloning the repository, run the following in the project's root directory:
-```swift build```
-```.path/to/build/Progressr --nfdc.path=<path-to-nfdcfacilities-csv>```
+* ```swift build```
+* ```.path/to/build/Progressr --nfdc.path=<path-to-nfdcfacilities-csv>```
