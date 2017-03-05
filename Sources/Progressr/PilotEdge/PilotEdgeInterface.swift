@@ -70,7 +70,7 @@ class PilotEdgeInterface {
 
                     peStatus.flightPlan = flightPlan
                     
-                    peStatus.progress = self.generateProgress(origin: flightPlan.origin!, destination: flightPlan.destination!, aircraftPosition: aircraftPosition.position)
+                    peStatus.progress = self.generateProgress(origin: flightPlan.origin!, destination: flightPlan.destination!, aircraftPosition: aircraftPosition)
                 }
 
                 return peStatus
@@ -92,7 +92,7 @@ class PilotEdgeInterface {
 		return nil
 	}
     
-    private func generateProgress(origin: Airport, destination: Airport, aircraftPosition: Coordinate2D) -> FlightProgress {
+    private func generateProgress(origin: Airport, destination: Airport, aircraftPosition: AircraftPosition) -> FlightProgress {
         func calculateDistance(_ from: Coordinate2D, _ to: Coordinate2D) -> Double {
             let startLat = from.latitude
             let startLon = from.longitude
@@ -114,12 +114,15 @@ class PilotEdgeInterface {
         }
         
         let totalDistance = calculateDistance(origin.position, destination.position)
-        let progressDistance = calculateDistance(aircraftPosition, destination.position)
+        let remainingDistance = calculateDistance(aircraftPosition.position, destination.position)
         
         // Percent
-        var percentComplete = 1.0 - Float32(progressDistance / totalDistance)
+        var percentComplete = 1.0 - Float32(remainingDistance / totalDistance)
         if percentComplete < 0 { percentComplete = 0 }
         
-        return FlightProgress(timeRemaining: 0, percentComplete: percentComplete)
+        // Time
+        let minutesRemaining = Int((remainingDistance / Double(aircraftPosition.groundspeed)) * 60)
+        
+        return FlightProgress(timeRemaining: minutesRemaining, percentComplete: percentComplete)
     }
 }

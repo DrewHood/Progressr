@@ -21,6 +21,6 @@ extension FlightProgress: CustomStringConvertible {
 
 extension FlightProgress: JSONStringConvertible {
     var jsonString: String {
-        return "{\"percentComplete\":\(self.percentComplete),\"timeRemaining\":\(self.timeRemaining)}"
+        return "{\"percentComplete\":\(self.percentComplete),\"minutesRemaining\":\(self.timeRemaining)}"
     }
 }
