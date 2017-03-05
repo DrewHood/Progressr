@@ -48,7 +48,7 @@ class PilotEdgeInterface {
                 if let flightPlanXml = pilot["flightplan"].element {
                     let originAirportCode = flightPlanXml.attribute(by: "origin")?.text ?? "KLAX"
                     let destinationAirportCode = flightPlanXml.attribute(by: "destination")?.text ?? "KPHX"
-                    let altitude = flightPlanXml.attribute(by: "altitude")?.text ?? "9999"
+                    let altitude = flightPlanXml.attribute(by: "altitude")?.text ?? "-1"
                     let type: FlightPlanType = FlightPlanType(rawValue: flightPlanXml.attribute(by: "type")!.text) ?? .vfr
 
                     // Get the coords
@@ -56,7 +56,7 @@ class PilotEdgeInterface {
                     let destination = AirportDatabase.sharedDatabase[destinationAirportCode] ?? AirportDatabase.sharedDatabase["PHX"]
 
                     // Get the route
-                    var route = pilot["flightplan"]["route"].element?.text ?? "Couldn't pull route"
+                    var route = pilot["flightplan"]["route"].element?.text ?? "Route parsing failed."
                     route = route.replacingOccurrences(of: "<![CDATA[ ", with: "")
                     route = route.replacingOccurrences(of: " ]]>", with: "")
 
