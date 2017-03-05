@@ -11,6 +11,7 @@ let router = Router()
 
 router.get("/pe/status/:id") {
     request, response, next in
+    
     if let pid = request.parameters["id"] {
         if let status = try PilotEdgeInterface.sharedStatus.status(Int(pid)!) {
             // Convert to JSON.

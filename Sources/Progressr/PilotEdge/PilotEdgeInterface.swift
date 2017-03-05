@@ -76,7 +76,7 @@ class PilotEdgeInterface {
                 return peStatus
 
             } catch let error as IndexingError {
-                print("Index error! \(error.description)")
+                print("Index error: PilotEdge status contains no pilot with id \(pilotId). Underlying error: \(error.description)")
             } catch {
                 print("Unknown parsing error!")
             }
