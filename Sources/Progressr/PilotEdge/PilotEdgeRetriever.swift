@@ -4,6 +4,7 @@
 
 import Foundation
 import SWXMLHash
+import Dispatch
 
 enum PilotEdgeRetrieverError: Error {
 	case networkFailure // Issues downloading file

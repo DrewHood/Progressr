@@ -13,7 +13,7 @@ class HTTPInterface {
     private init() {}
     
     static func get(_ url: URL, callback: @escaping (Data?, String?) -> Void) {
-        let session = URLSession.shared
+        let session = URLSession(configuration: .default)
         session.dataTask(with: url) {
             (data, response, error) in
             if error != nil {
