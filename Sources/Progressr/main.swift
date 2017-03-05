@@ -1,5 +1,10 @@
 import Kitura
+import Configuration
 import SwiftyJSON
+
+// Load config
+let CONFIGURATION = ConfigurationManager()
+CONFIGURATION.load(.commandLineArguments)
 
 // Create a new router
 let router = Router()

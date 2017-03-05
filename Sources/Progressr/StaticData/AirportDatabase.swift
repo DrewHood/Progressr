@@ -20,7 +20,7 @@ class AirportDatabase {
     static let sharedDatabase = AirportDatabase()
     private init() {}
     
-    private let nfdcPath = "/Users/Drew/Documents/Code/Sandbox/CSVs/NfdcFacilities.csv"
+    private let nfdcPath = CONFIGURATION["nfdc:path"] as! String
     // TODO: Move this to a sustainable location
     
     private var airports: AirportDictionary = [:]
