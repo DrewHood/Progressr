@@ -69,7 +69,7 @@ class AirportDatabase {
             print("Loaded \(self.airports.count) airports!")
             
         } else {
-            throw AirportDatabaseError.nfdc(message: "FATAL - Failed to open Nfdc DB.")
+            throw AirportDatabaseError.nfdc(message: "FATAL - Failed to open Nfdc DB at path \(self.nfdcPath).")
         }
     }
     
