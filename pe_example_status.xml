@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<status>
+<controllers>
+</controllers>
+<pilots>
+<pilot cid="13827" drone="no">
+<name>Person One</name>
+<equipment>A320</equipment>
+<callsign>ABC123</callsign>
+<frequency radio="com1" lastUsed="yes" desiredRole="PDX_LCN">11870</frequency>
+<frequency radio="com2" lastUsed="no" desiredRole="null">199998</frequency>
+<frequency radio="com3" lastUsed="no" desiredRole="null">199998</frequency>
+<position lat="45.6125206" lon="-122.6410563" alt="706.579" groundSpeed = "134.4851" trueHeading = "123.0469" />
+<flightplan origin="KSFO" destination="KPDX" type="IFR" alternate="KSEA" aircraftType="A320/Q" altitude="38000" ><route><![CDATA[+TRUKN2 GRTFL MACHU TMBRS2]]></route><remarks><![CDATA[]]></remarks></flightplan>
+</pilot>
+<pilot cid="14579" drone="no">
+<name>Person Two</name>
+<equipment>C172</equipment>
+<callsign>N123AB</callsign>
+<frequency radio="com1" lastUsed="yes" desiredRole="SNA_CD">11800</frequency>
+<frequency radio="com2" lastUsed="no" desiredRole="null">199998</frequency>
+<frequency radio="com3" lastUsed="no" desiredRole="null">199998</frequency>
+<position lat="33.6771104" lon="-117.8633978" alt="59.5576" groundSpeed = "0.0191" trueHeading = "116.0156" />
+<flightplan/>
+</pilot>
+</pilots>
+</status>
