@@ -56,7 +56,8 @@ try! PilotEdgeRetriever.sharedRetriever.start()
 try! AirportDatabase.sharedDatabase.loadAirports() // We want to crash if this fails!
 
 // Add an HTTP server and connect it to the router
-Kitura.addHTTPServer(onPort: 8090, with: router)
+let servicePort = CONFIGURATION["service:port"] as! String
+Kitura.addHTTPServer(onPort: Int(servicePort)!, with: router)
 
 // Start the Kitura runloop (this call never returns)
 Kitura.run()
