@@ -24,4 +24,4 @@ Requirements for running:
 
 After cloning the repository, run the following in the project's root directory:
 * ```swift build```
-* ```.path/to/build/Progressr --nfdc.path=<path-to-nfdcfacilities-csv>```
+* ```.path/to/build/Progressr --nfdc.path=<path-to-nfdcfacilities-csv> --server.port=<tcp_port>```
