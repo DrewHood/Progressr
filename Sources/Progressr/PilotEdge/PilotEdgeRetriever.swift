@@ -3,7 +3,7 @@
  */
 
 import Foundation
-import SWXMLHash
+import PerfectXML
 import Dispatch
 
 enum PilotEdgeRetrieverError: Error {
@@ -16,15 +16,15 @@ class PilotEdgeRetriever {
 	// Singleton
 	static let sharedRetriever = PilotEdgeRetriever()
 	private init() {}
-    
-    private let fm = FileManager.default
+
+  private let fm = FileManager.default
 
 	private let peUrl = "http://map.pilotedge.net/status_live.xml"
-    
-    var status: XMLIndexer?
+
+  var status: XDocument?
 
 	// Flags
-    private let downloadInterval: UInt32 = 10 // Seconds
+  private let downloadInterval: UInt32 = 10 // Seconds
 	private var networkFailureTicker = 0
 	private var ioErrorTicker = 0
 	private var stopRetrieving = false
@@ -59,7 +59,10 @@ class PilotEdgeRetriever {
                 HTTPInterface.get(url) {
                     data, error in
                     if data != nil {
-                        self.status = SWXMLHash.parse(data!)
+											// stringify
+											// TODO: Handle error
+											let dataStr = String(data: data!, encoding: .ascii)
+                        self.status = XDocument(fromSource: dataStr!)
                     } else {
                         print(error!)
                     }
@@ -67,11 +70,11 @@ class PilotEdgeRetriever {
             } else {
                 throw PilotEdgeRetrieverError.unknown
             }
-            
+
             if !self.stopRetrieving {
                 sleep(self.downloadInterval)
             }
-            
+
 		} while !self.stopRetrieving
 	}
 

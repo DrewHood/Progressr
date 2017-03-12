@@ -3,95 +3,81 @@
  */
 
 import Foundation
-import SWXMLHash
+import PerfectXML
 
 enum PilotEdgeInterfaceError: Error {
- 	case retrievalError
- 	case serializationError
+    case retrievalError
+    case serializationError
 }
 
 class PilotEdgeInterface {
-
-	// Singleton
-	static let sharedStatus = PilotEdgeInterface()
-	private init() {}
-
-	// Internal Interface
-	func status(_ pilotId: Int) throws -> PilotEdgeStatus? {
-        // TODO: Error handling
-
-		// Grab the latest data.
-        if let peData = PilotEdgeRetriever.sharedRetriever.status {
-            // Extract data for pilot.
-            do {
-                let pilot = try peData["status"]["pilots"]["pilot"].withAttr("cid", "\(pilotId)")
-
-                // Serialize pilot info.
-                let pilotInfo = PilotInfo(pilotId: pilotId,
-                                          name: pilot["name"].element!.text!,
-                                          callsign: pilot["callsign"].element!.text!,
-                                          aircraftType: pilot["equipment"].element!.text!)
-
-                // Determine the aircraft position
-                let positionXml = pilot["position"].element!
-
-                let position = Coordinate2D(latitude: Double(positionXml.attribute(by: "lat")!.text)!,
-                                            longitude: Double(positionXml.attribute(by: "lon")!.text)!)
-
-                let aircraftPosition = AircraftPosition(position: position,
-                                                        groundspeed: Float(positionXml.attribute(by: "groundSpeed")!.text)!,
-                                                        altitude: Float(positionXml.attribute(by: "alt")!.text)!)
-
-                var peStatus = PilotEdgeStatus(position: aircraftPosition, pilotInfo: pilotInfo, flightPlan: nil, progress: nil)
-
-                // Parse the flight plan
-                if let flightPlanXml = pilot["flightplan"].element, let originAirportCode = flightPlanXml.attribute(by: "origin")?.text {
-                    let destinationAirportCode = flightPlanXml.attribute(by: "destination")?.text ?? "KPHX"
-                    let altitude = flightPlanXml.attribute(by: "altitude")?.text ?? "-1"
-                    let type: FlightPlanType = FlightPlanType(rawValue: flightPlanXml.attribute(by: "type")!.text) ?? .vfr
-
-                    // Get the coords
-                    let origin = AirportDatabase.sharedDatabase[originAirportCode] ?? AirportDatabase.sharedDatabase["LAX"]
-                    let destination = AirportDatabase.sharedDatabase[destinationAirportCode] ?? AirportDatabase.sharedDatabase["PHX"]
-
-                    // Get the route
-                    var route = pilot["flightplan"]["route"].element?.text ?? "Route parsing failed."
-                    route = route.replacingOccurrences(of: "<![CDATA[ ", with: "")
-                    route = route.replacingOccurrences(of: " ]]>", with: "")
-
-
-                    // Construct the object
-                    let flightPlan = FlightPlan(origin: origin,
-                                                destination: destination,
-                                                altitude: altitude,
-                                                type: type,
-                                                route: route)
-
-                    peStatus.flightPlan = flightPlan
-                    
-                    peStatus.progress = self.generateProgress(origin: flightPlan.origin!, destination: flightPlan.destination!, aircraftPosition: aircraftPosition)
-                }
-
-                return peStatus
-
-            } catch let error as IndexingError {
-                print("Index error: PilotEdge status contains no pilot with id \(pilotId). Underlying error: \(error.description)")
-            } catch {
-                print("Unknown parsing error!")
-            }
-
-
-        } else {
-            print("Couldn't retrieve!")
-
-            throw PilotEdgeInterfaceError.retrievalError
+    
+    // Singleton
+    static let sharedStatus = PilotEdgeInterface()
+    private init() {}
+    
+    // Internal Interface
+    func status(_ pilotId: Int) throws -> PilotEdgeStatus? {
+        // Get the pilot
+        guard let pilot = self.retrievePilotXML(pilotId) else { return nil }
+        
+        // Build pilot info object
+        let pIdStr = pilot.getAttribute(name: "cid")!
+        let pName = pilot.childValue("name")!
+        let pCallsign = pilot.childValue("callsign")!
+        let pType = pilot.childValue("equipment")!
+        
+        let pilotInfo = PilotInfo(pilotId: Int(pIdStr)!, name: pName, callsign: pCallsign, aircraftType: pType)
+        
+        // Build position object. 
+        let posXml = pilot.childNode("position")!
+        let latXml = posXml.getAttribute(name: "lat")!
+        let lonXml = posXml.getAttribute(name: "lon")!
+        let speedXml = posXml.getAttribute(name: "groundSpeed")!
+        let altXml = posXml.getAttribute(name: "alt")!
+        
+        let positionCoord = Coordinate2D(latitude: Double(latXml)!, longitude: Double(lonXml)!)
+        let acPosition = AircraftPosition(position: positionCoord, groundspeed: Float(speedXml)!, altitude: Float(altXml)!)
+        
+        // Construct the PE Status object.
+        var peStatus = PilotEdgeStatus(position: acPosition, pilotInfo: pilotInfo)
+        
+        // Flight plan. 
+        if let routeXml = pilot.childNode("flightplan")?.childNode("route") { // workaround: library picks up on <flightplan/> stubs.
+            let flightPlanXml = pilot.childNode("flightplan")!
+            
+            let originCode = flightPlanXml.getAttribute(name: "origin")!
+            let destinationCode = flightPlanXml.getAttribute(name: "destination")!
+            
+            // Construct orig/dest airports
+            let origin = AirportDatabase.sharedDatabase[originCode]
+            let destination = AirportDatabase.sharedDatabase[destinationCode]
+            
+            // Other info
+            let type = FlightPlanType(rawValue: flightPlanXml.getAttribute(name: "type")!)!
+            let alt = flightPlanXml.getAttribute(name: "altitude")!
+            let route = routeXml.nodeValue!
+            
+            // Construct flight plan object
+            peStatus.flightPlan = FlightPlan(origin: origin,
+                                             destination: destination,
+                                             altitude: alt,
+                                             type: type,
+                                             route: route)
+            
+            // Because we have a flight plan, we can determine progress
+            peStatus.progress = self.generateProgress(origin: origin!,
+                                                      destination: destination!,
+                                                      aircraftPosition: acPosition)
+            
         }
-
-		// Build response object.
-		return nil
-	}
+        
+        // Build response object.
+        return peStatus
+    }
     
     private func generateProgress(origin: Airport, destination: Airport, aircraftPosition: AircraftPosition) -> FlightProgress {
+        // TODO: Move this func out to the Coordinate2D object
         func calculateDistance(_ from: Coordinate2D, _ to: Coordinate2D) -> Double {
             let startLat = from.latitude
             let startLon = from.longitude
@@ -116,12 +102,29 @@ class PilotEdgeInterface {
         let remainingDistance = calculateDistance(aircraftPosition.position, destination.position)
         
         // Percent
-        var percentComplete = 1.0 - Float32(remainingDistance / totalDistance)
+        var percentComplete = (1.0 - Float32(remainingDistance / totalDistance)) * 100.00
         if percentComplete < 0 { percentComplete = 0 }
         
         // Time
         let minutesRemaining = Int((remainingDistance / Double(aircraftPosition.groundspeed)) * 60)
         
         return FlightProgress(timeRemaining: minutesRemaining, percentComplete: percentComplete)
+    }
+    
+    private func retrievePilotXML(_ pilotId: Int) -> XElement? {
+        guard let peData = PilotEdgeRetriever.sharedRetriever.status else { print("No status!"); return nil }
+        
+        // This returns a NodeSet. If pilot n/a, will be empty.
+        let setRes = peData.extract(path: "/status/pilots/pilot[@cid=\(pilotId)]")
+        guard case .nodeSet (let pilotSet) = setRes else { return nil }
+        
+        if pilotSet.count == 1 { // We require a unique result
+            for pilot in pilotSet {
+                guard let pilotXML = pilot as? XElement else { return nil }
+                return pilotXML
+            }
+        } else { return nil }
+        
+        return nil
     }
 }
