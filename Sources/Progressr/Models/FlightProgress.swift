@@ -21,7 +21,7 @@ extension FlightProgress: CustomStringConvertible {
 
 extension FlightProgress: JSONStringConvertible {
     var jsonString: String {
-        let timeString = self.timeRemaining != nil ? String(describing: self.timeRemaining) : "null"
+        let timeString = self.timeRemaining != nil ? String(describing: self.timeRemaining!) : "null"
         return "{\"percentComplete\":\(self.percentComplete),\"minutesRemaining\":\(timeString)}"
     }
 }
