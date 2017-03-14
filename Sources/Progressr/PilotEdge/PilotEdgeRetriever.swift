@@ -4,6 +4,7 @@
 
 import Foundation
 import PerfectXML
+import PerfectLogger
 import Dispatch
 
 enum PilotEdgeRetrieverError: Error {
@@ -33,10 +34,15 @@ class PilotEdgeRetriever {
     private var pilotEdgeTestMode: Bool {
         return CONFIGURATION["pe:debug"] != nil
     }
+    private var networkAttempts: Int {
+        guard let attempts = CONFIGURATION["pe:downloadAttempts"] as? String else { return 3 }
+        
+        return Int(attempts)!
+    }
     
     // Interface
     func start() throws {
-        print("Starting PE status retrieval every \(self.downloadInterval) seconds")
+        LogFile.info("Starting PE status retrieval every \(self.downloadInterval) seconds")
         
         // Dispatch retrieval on background thread
         let queue = DispatchQueue.global(qos: .utility)
@@ -47,6 +53,7 @@ class PilotEdgeRetriever {
     
     func stop() { 	// Fails silenly
         self.stopRetrieving = true
+        LogFile.info("Disabling PE status retrieval.")
     }
     
     func retrieveOnce() throws {
@@ -73,24 +80,34 @@ class PilotEdgeRetriever {
         }
         
         repeat {
+            // Throw if we need to
+            // This is a workaround for not being able to throw in closures
+            if self.networkFailureTicker == self.networkAttempts {
+                LogFile.critical("PilotEdge status retrieval failed \(self.networkFailureTicker) times. Throwing!")
+                
+                self.stopRetrieving = true
+                throw PilotEdgeRetrieverError.networkFailure
+            }
+            
             // Download file
             if let url = URL(string: self.peUrl) {
                 HTTPInterface.get(url) {
                     data, error in
                     if data != nil {
+                        // If successful, reset the failure ticker
+                        self.networkFailureTicker = 0
+                        
                         // stringify
                         // TODO: Handle error
                         let dataStr = String(data: data!, encoding: .ascii)
                         self.status = XDocument(fromSource: dataStr!)
                     } else {
-                        print(error!)
+                        LogFile.error("Error retrieving PE status: \(error)")
+                        self.networkFailureTicker += 1
                     }
                 }
             } else {
                 self.networkFailureTicker += 1
-                if self.networkFailureTicker > 2 {
-                    throw PilotEdgeInterfaceError.retrievalError
-                }
             }
             
             if !self.stopRetrieving {

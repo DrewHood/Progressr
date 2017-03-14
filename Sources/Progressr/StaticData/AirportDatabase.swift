@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import PerfectLogger
 
 enum AirportDatabaseError: Error {
     case nfdc(message: String?)
@@ -41,7 +42,7 @@ class AirportDatabase {
     func loadAirports() throws {
         // Get a streamer
         if let csvStream = StreamReader(path: self.nfdcPath) {
-            print("Will begin loading airports!")
+            LogFile.info("Will begin loading airports!")
             
             let _ = csvStream.nextLine() // Ignore first line
             
@@ -66,7 +67,7 @@ class AirportDatabase {
                 
             } while str != "F"
             
-            print("Loaded \(self.airports.count) airports!")
+            LogFile.info("Loaded \(self.airports.count) airports!")
             
         } else {
             throw AirportDatabaseError.nfdc(message: "FATAL - Failed to open Nfdc DB at path \(self.nfdcPath).")

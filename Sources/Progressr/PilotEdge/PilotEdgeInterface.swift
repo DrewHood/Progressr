@@ -4,6 +4,7 @@
 
 import Foundation
 import PerfectXML
+import PerfectLogger
 
 enum PilotEdgeInterfaceError: Error {
     case retrievalError
@@ -113,7 +114,7 @@ class PilotEdgeInterface {
     }
     
     private func retrievePilotXML(_ pilotId: Int) -> XElement? {
-        guard let peData = PilotEdgeRetriever.sharedRetriever.status else { print("No status!"); return nil }
+        guard let peData = PilotEdgeRetriever.sharedRetriever.status else { LogFile.error("No status!"); return nil }
         
         // This returns a NodeSet. If pilot n/a, will be empty.
         let setRes = peData.extract(path: "/status/pilots/pilot[@cid=\(pilotId)]")

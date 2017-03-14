@@ -1,6 +1,7 @@
 import Kitura
 import Configuration
 import SwiftyJSON
+import PerfectLogger
 
 // Linux support
 #if os(Linux)
@@ -20,6 +21,11 @@ import SwiftyJSON
 // Load config
 let CONFIGURATION = ConfigurationManager()
 CONFIGURATION.load(.commandLineArguments)
+
+// Init logging
+fileprivate let logFilePath = CONFIGURATION["service:logpath"] as? String ?? "/var/log/app/Progressr.log"
+LogFile.location = logFilePath
+LogFile.debug("Bootstrapped logging to file \(logFilePath)")
 
 // Create a new router
 let router = Router()
@@ -73,7 +79,7 @@ do {
     
     // Add an HTTP server and connect it to the router
     let servicePort = CONFIGURATION["service:port"] as? String ?? "8090"
-    print("Starting service on port \(servicePort)")
+    LogFile.info("Starting service on port \(servicePort)")
     
     Kitura.addHTTPServer(onPort: Int(servicePort)!, with: router)
     
@@ -86,7 +92,7 @@ do {
         }
         
         let termHandler: SigactionHandler = { signal in
-            print("Received SIGTERM. Closing servers and shutting down.")
+            LogFile.info("Received SIGTERM. Closing servers and shutting down.")
             
             // Stop calling PE
             PilotEdgeRetriever.sharedRetriever.stop()
@@ -109,11 +115,11 @@ do {
     #endif
 
 } catch PilotEdgeRetrieverError.networkFailure {
-    print("PE Network failure!")
+    LogFile.critical("PE Network failure!")
 } catch PilotEdgeInterfaceError.retrievalError {
-    print("PE retrieval error!")
+    LogFile.critical("PE retrieval error!")
 } catch AirportDatabaseError.nfdc(let message) {
-    print(message ?? "Unknown Airport database error!")
+    LogFile.critical(message ?? "Unknown Airport database error!")
 } catch {
-    print("Unknown error starting service!")
+    LogFile.critical("Unknown error starting service!")
 }
