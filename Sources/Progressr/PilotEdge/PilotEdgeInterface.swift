@@ -7,7 +7,7 @@ import PerfectXML
 
 enum PilotEdgeInterfaceError: Error {
     case retrievalError
-    case serializationError
+    case serializationError(message: String)
 }
 
 class PilotEdgeInterface {
@@ -22,7 +22,7 @@ class PilotEdgeInterface {
         guard let pilot = self.retrievePilotXML(pilotId) else { return nil }
         
         // Build pilot info object
-        let pIdStr = pilot.getAttribute(name: "cid")!
+        guard let pIdStr = pilot.getAttribute(name: "cid")  else { throw PilotEdgeInterfaceError.serializationError(message: "Couldn't serialize pilot info") }
         let pName = pilot.childValue("name")!
         let pCallsign = pilot.childValue("callsign")!
         let pType = pilot.childValue("equipment")!
@@ -30,7 +30,7 @@ class PilotEdgeInterface {
         let pilotInfo = PilotInfo(pilotId: Int(pIdStr)!, name: pName, callsign: pCallsign, aircraftType: pType)
         
         // Build position object. 
-        let posXml = pilot.childNode("position")!
+        guard let posXml = pilot.childNode("position") else { throw PilotEdgeInterfaceError.serializationError(message: "Couldn't serialize 'position'") }
         let latXml = posXml.getAttribute(name: "lat")!
         let lonXml = posXml.getAttribute(name: "lon")!
         let speedXml = posXml.getAttribute(name: "groundSpeed")!
@@ -50,8 +50,8 @@ class PilotEdgeInterface {
             let destinationCode = flightPlanXml.getAttribute(name: "destination")!
             
             // Construct orig/dest airports
-            let origin = AirportDatabase.sharedDatabase[originCode]
-            let destination = AirportDatabase.sharedDatabase[destinationCode]
+            guard let origin = AirportDatabase.sharedDatabase[originCode] else { throw AirportDatabaseError.unknown }
+            guard let destination = AirportDatabase.sharedDatabase[destinationCode] else { throw AirportDatabaseError.unknown }
             
             // Other info
             let type = FlightPlanType(rawValue: flightPlanXml.getAttribute(name: "type")!)!
@@ -66,8 +66,8 @@ class PilotEdgeInterface {
                                              route: route)
             
             // Because we have a flight plan, we can determine progress
-            peStatus.progress = self.generateProgress(origin: origin!,
-                                                      destination: destination!,
+            peStatus.progress = self.generateProgress(origin: origin,
+                                                      destination: destination,
                                                       aircraftPosition: acPosition)
             
         }

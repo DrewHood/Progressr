@@ -8,7 +8,6 @@ import Dispatch
 
 enum PilotEdgeRetrieverError: Error {
     case networkFailure // Issues downloading file
-    case ioError // Issues writing to file
     case unknown
 }
 

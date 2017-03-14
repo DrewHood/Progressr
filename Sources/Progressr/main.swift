@@ -49,15 +49,28 @@ router.get("airport/:code") {
     next()
 }
 
-// Set up retriever
-try! PilotEdgeRetriever.sharedRetriever.start()
+do {
+    // Set up retriever
+    try PilotEdgeRetriever.sharedRetriever.start()
+    
+    // Load airports
+    try AirportDatabase.sharedDatabase.loadAirports() // We want to crash if this fails!
+    
+    // Add an HTTP server and connect it to the router
+    let servicePort = CONFIGURATION["service:port"] as? String ?? "8090"
+    print("Starting service on port \(servicePort)")
+    
+    Kitura.addHTTPServer(onPort: Int(servicePort)!, with: router)
+    
+    // Start the Kitura runloop (this call never returns)
+    Kitura.run()
 
-// Load airports
-try! AirportDatabase.sharedDatabase.loadAirports() // We want to crash if this fails!
-
-// Add an HTTP server and connect it to the router
-let servicePort = CONFIGURATION["service:port"] as! String
-Kitura.addHTTPServer(onPort: Int(servicePort)!, with: router)
-
-// Start the Kitura runloop (this call never returns)
-Kitura.run()
+} catch PilotEdgeRetrieverError.networkFailure {
+    print("PE Network failure!")
+} catch PilotEdgeInterfaceError.retrievalError {
+    print("PE retrieval error!")
+} catch AirportDatabaseError.nfdc(let message) {
+    print(message ?? "Unknown Airport database error!")
+} catch {
+    print("Unknown error starting service!")
+}
