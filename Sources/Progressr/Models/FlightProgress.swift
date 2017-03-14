@@ -9,7 +9,7 @@
 import Foundation
 
 struct FlightProgress {
-    let timeRemaining: Int
+    let timeRemaining: Int?
     let percentComplete: Float32
 }
 
@@ -21,6 +21,7 @@ extension FlightProgress: CustomStringConvertible {
 
 extension FlightProgress: JSONStringConvertible {
     var jsonString: String {
-        return "{\"percentComplete\":\(self.percentComplete),\"minutesRemaining\":\(self.timeRemaining)}"
+        let timeString = self.timeRemaining != nil ? String(describing: self.timeRemaining) : "null"
+        return "{\"percentComplete\":\(self.percentComplete),\"minutesRemaining\":\(timeString)}"
     }
 }
