@@ -102,7 +102,7 @@ class PilotEdgeRetriever {
                         let dataStr = String(data: data!, encoding: .ascii)
                         self.status = XDocument(fromSource: dataStr!)
                     } else {
-                        LogFile.error("Error retrieving PE status: \(error)")
+                        LogFile.error("Error retrieving PE status: \(error!)")
                         self.networkFailureTicker += 1
                     }
                 }
