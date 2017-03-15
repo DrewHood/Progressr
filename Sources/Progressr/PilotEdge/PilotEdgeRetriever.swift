@@ -107,7 +107,7 @@ class PilotEdgeRetriever {
                     }
                 }
             } else {
-                self.networkFailureTicker += 1
+                LogFile.error("Couldn't create URL to PE Status!")
             }
             
             if !self.stopRetrieving {

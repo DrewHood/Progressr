@@ -108,8 +108,10 @@ class PilotEdgeInterface {
         
         // Time
         var minutesRemaining: Int? = nil
-        if aircraftPosition.groundspeed != 0.0 {
-            minutesRemaining = Int((remainingDistance / Double(aircraftPosition.groundspeed))) * 60
+        if aircraftPosition.groundspeed > 30.0 {
+            let hoursRemaining = (remainingDistance / Double(aircraftPosition.groundspeed))
+            let mins = hoursRemaining * 60.0
+            minutesRemaining = Int(mins)
         }
         
         return FlightProgress(timeRemaining: minutesRemaining, percentComplete: percentComplete)
