@@ -52,6 +52,7 @@ class Controller {
     // Route Handlers
     public func getPeStatus(request: RouterRequest, response: RouterResponse, _: @escaping () -> Void) throws {
         response.headers["Content-Type"] = "application/json; charset=utf-8"
+        response.headers["Access-Control-Allow-Origin"] = "*"
         
         if let pid = request.parameters["id"] {
             if let status = try PilotEdgeInterface.sharedStatus.status(Int(pid)!) {
@@ -67,6 +68,7 @@ class Controller {
     
     public func getAirport(request: RouterRequest, response: RouterResponse, _: @escaping () -> Void) throws {
         response.headers["Content-Type"] = "application/json; charset=utf-8"
+        response.headers["Access-Control-Allow-Origin"] = "*"
         
         // Get code without K
         if var faaCode = request.parameters["code"] {
