@@ -83,7 +83,7 @@ class PilotEdgeRetriever {
             // Throw if we need to
             // This is a workaround for not being able to throw in closures
             if self.networkFailureTicker == self.networkAttempts {
-                LogFile.critical("PilotEdge status retrieval failed \(self.networkFailureTicker) times. Throwing!")
+                LogFile.critical("PilotEdge status retrieval failed \(self.networkFailureTicker) times. The limit is \(self.networkAttempts).")
                 
                 self.stopRetrieving = true
                 throw PilotEdgeRetrieverError.networkFailure
@@ -95,14 +95,17 @@ class PilotEdgeRetriever {
                     data, error in
                     if data != nil {
                         // If successful, reset the failure ticker
-                        self.networkFailureTicker = 0
+                        if self.networkFailureTicker > 0 {
+                            LogFile.info("Resetting network failure ticker. There were \(self.networkFailureTicker) failures.")
+                            self.networkFailureTicker = 0
+                        }
                         
                         // stringify
                         // TODO: Handle error
                         let dataStr = String(data: data!, encoding: .ascii)
                         self.status = XDocument(fromSource: dataStr!)
                     } else {
-                        LogFile.error("Error retrieving PE status: \(error!)")
+                        LogFile.error("Error retrieving PE status: \(error!). Incrementing ticker!")
                         self.networkFailureTicker += 1
                     }
                 }
